@@ -26,7 +26,9 @@ package alwaysAnimationTool.view {
 		public var friction : Number;
 		public var name : String;
 		public var middleGlowAlpha : Number;
-		public var middleGlowScale:Number;
+		public var middleGlowScale : Number;
+		public var shakeAmount : int;
+		public var numberOfShakes : int;
 
 		public function savePreset() : String {
 			var preset : String = "totalCirles," + totalCirles + ",dotsPerCircle," + dotsPerCircle + ",initialCircleRadius," + initialCircleRadius + ",spaceBetweenCircles," + spaceBetweenCircles + ",smallestDotRadius," + smallestDotRadius + ",dotRadiusIncrement," + dotRadiusIncrement + ",rotateSpeed," + rotateSpeed + ",dotColor," + dotColor + ",showCircles," + showCircles + ",dotAlpha," + dotAlpha + ",filterType," + filterType + ",filterSize," + filterSize + ",filterColor," + filterColor + ",filterStrength," + filterStrength + ",filterAlpha," + filterAlpha + ",explosionPower," + explosionPower + ",expansionRate," + expansionRate + ",depth," + depth + ",epsilon," + epsilon+"-";

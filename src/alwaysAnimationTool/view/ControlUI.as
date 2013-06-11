@@ -3,6 +3,8 @@ package alwaysAnimationTool.view {
 
 	import hires.debug.Stats;
 
+	import plugins.ShakeEffect;
+
 	import uk.co.soulwire.gui.SimpleGUI;
 
 	import utils.CustomEvent;
@@ -10,6 +12,8 @@ package alwaysAnimationTool.view {
 
 	import com.bit101.components.Component;
 	import com.bit101.components.List;
+	import com.greensock.TweenMax;
+	import com.greensock.plugins.TweenPlugin;
 
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -48,7 +52,7 @@ package alwaysAnimationTool.view {
 		private var _presetCombo : Component;
 		public var _presetIndex : int = 0;
 		private var _data : String;
-		//private var _dataFile : Fil;
+		// private var _dataFile : Fil;
 		private var fr : FileReference;
 		private var _list : List;
 		// lists and button
@@ -62,10 +66,11 @@ package alwaysAnimationTool.view {
 		private var _animIndex : int;
 		public var _animDuration : Number = 2;
 		private var _animStartTimer : Timer;
-		
-		public var explodeAtEnd:Boolean;
+		public var explodeAtEnd : Boolean;
+		private var _display : Sprite;
 
-		public function ControlUI() {
+		public function ControlUI(display : Sprite) {
+			_display = display;
 			init();
 		}
 
@@ -78,11 +83,10 @@ package alwaysAnimationTool.view {
 			addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
 			addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
 
-		
 			// createList();
 		}
 
-		// ///////////////////////////////
+		// // /////////////////////////////
 		private function mouseDownHandler(event : MouseEvent) : void {
 			var sprite : Sprite = Sprite(event.target);
 			sprite.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
@@ -137,6 +141,10 @@ package alwaysAnimationTool.view {
 			_gui.addColour("sketchParams.filterColor", {label:"Filter Color", callback:valueUpdated});
 			_gui.addSlider("sketchParams.middleGlowAlpha", 0, 1, {label:"Center Blur Alpha", width:370, tick:.05, callback:valueUpdated});
 			_gui.addSlider("sketchParams.middleGlowScale", 0, 3, {label:"Center Blur Scale", width:370, tick:.05, callback:valueUpdated});
+			_gui.addGroup("SHAKE EFFECT");
+			_gui.addSlider("sketchParams.numberOfShakes", 0, 20, {label:"Total shakes", width:370, tick:1, callback:valueUpdated});
+			_gui.addSlider("sketchParams.shakeAmount", 0, 50, {label:"Shake amount", width:370, tick:1, callback:valueUpdated});
+			_gui.addButton("Start shaking", {callback:startShake});
 
 			_gui.addColumn("EXPLOSION");
 			_gui.addSlider("sketchParams.explosionPower", 0, 200, {label:"Explosion Power", width:370, tick:.5, callback:valueUpdated});
@@ -146,7 +154,7 @@ package alwaysAnimationTool.view {
 			_gui.addSlider("sketchParams.friction", 0, 1000, {label:"Friction", width:370, tick:5, callback:valueUpdated});
 			_gui.addGroup("Animation Speed");
 			_gui.addSlider("_animDuration", 0, 10, {label:"Duration", width:370, tick:.5, callback:valueUpdated});
-		
+
 			_gui.addColumn("Explode and reset");
 			_gui.addButton("Explode!", {callback:makeExplosion});
 			_gui.addButton("Restore Dots", {callback:startSimulation});
@@ -158,7 +166,6 @@ package alwaysAnimationTool.view {
 			_gui.addButton("Clear List", {callback:clearList});
 			_gui.addButton("Animate", {callback:animate});
 			_gui.addToggle("explodeAtEnd");
-
 
 			_gui.show();
 			sketchParams.dotRadiusIncrement = 1;
@@ -183,6 +190,8 @@ package alwaysAnimationTool.view {
 			sketchParams.friction = 500;
 			sketchParams.middleGlowAlpha = 0;
 			sketchParams.middleGlowScale = 1;
+			sketchParams.shakeAmount = 20;
+			sketchParams.numberOfShakes = 10;
 
 			// _total = TextFieldUtils.createTextField();
 			// _total.x = 750;
@@ -200,65 +209,68 @@ package alwaysAnimationTool.view {
 			createAnimOrder();
 		}
 
+		private function startShake() : void {
+			TweenPlugin.activate([ShakeEffect]);
+		
+
+//CustomEase.create("myCustomEase", [{s:0,cp:0.156,e:0.03},{s:0.03,cp:-0.096,e:0.068},{s:0.068,cp:0.232,e:0.032},{s:0.032,cp:-0.168,e:0.14599},{s:0.14599,cp:0.46,e:0.32},{s:0.32,cp:0.18,e:-0.11},{s:-0.11,cp:-0.4,e:1}]);
+			TweenMax.to(_display, 1, {shake:{x:sketchParams.shakeAmount, y: sketchParams.shakeAmount, numShakes:sketchParams.numberOfShakes, reversed:true} });
+		}
+
 		public function animate() : void {
 			_animIndex = 0;
-			//set to the first sketchparams			
+			// set to the first sketchparams
 			sketchParams = presets[0];
 			valueUpdated();
 			_animIndex = 1;
 			_animStartTimer = new Timer(1000, 1);
 			_animStartTimer.addEventListener(TimerEvent.TIMER_COMPLETE, startAnim);
 			_animStartTimer.start();
-			 
+
 			_gui.hide();
-			
 		}
 
 		private function startAnim(event : TimerEvent) : void {
 			_animStartTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, startAnim);
 			_animStartTimer = null;
 			tweenToValues(presets[_animIndex]);
-			
 		}
-		
-		public function tweenCompleted():void{
+
+		public function tweenCompleted() : void {
 			trace("ControlUI.tweenCompleted()  ");
-			if (_animIndex<presets.length-1){
+			if (_animIndex < presets.length - 1) {
 				_animIndex++;
 				tweenToValues(presets[_animIndex]);
-			}else{
-				if (explodeAtEnd){
+			} else {
+				if (explodeAtEnd) {
 					makeExplosion();
-					
 				}
 			}
 		}
 
 		private function tweenToValues(newPreset : SketchParams) : void {
-			
 			sketchParams.filterType = newPreset.filterType;
 			sketchParams.showCircles = newPreset.showCircles;
-			Tweener.addTween(sketchParams, {  totalCirles:newPreset.totalCirles, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {  depth:newPreset.depth , time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  dotAlpha:newPreset.dotAlpha, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  dotColor:newPreset.dotColor, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  dotRadiusIncrement:newPreset.dotRadiusIncrement, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  dotsPerCircle:newPreset.dotsPerCircle, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  epsilon:newPreset.epsilon, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  expansionRate:newPreset.expansionRate, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  explosionPower:newPreset.explosionPower, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  filterAlpha:newPreset.filterAlpha, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  filterColor:newPreset.filterColor, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  filterSize:newPreset.filterSize, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  filterStrength:newPreset.filterStrength, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  friction:newPreset.friction, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  initialCircleRadius:newPreset.initialCircleRadius, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  rotateSpeed:newPreset.rotateSpeed, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  smallestDotRadius:newPreset.smallestDotRadius, time:_animDuration,  onUpdate:update});
-			Tweener.addTween(sketchParams, {  spaceBetweenCircles:newPreset.spaceBetweenCircles, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
-			Tweener.addTween(sketchParams, {  middleGlowAlpha:newPreset.middleGlowAlpha, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
-			Tweener.addTween(sketchParams, {  middleGlowScale:newPreset.middleGlowScale, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
-			
+			Tweener.addTween(sketchParams, {totalCirles:newPreset.totalCirles, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {depth:newPreset.depth, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {dotAlpha:newPreset.dotAlpha, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {dotColor:newPreset.dotColor, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {dotRadiusIncrement:newPreset.dotRadiusIncrement, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {dotsPerCircle:newPreset.dotsPerCircle, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {epsilon:newPreset.epsilon, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {expansionRate:newPreset.expansionRate, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {explosionPower:newPreset.explosionPower, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {filterAlpha:newPreset.filterAlpha, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {filterColor:newPreset.filterColor, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {filterSize:newPreset.filterSize, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {filterStrength:newPreset.filterStrength, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {friction:newPreset.friction, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {initialCircleRadius:newPreset.initialCircleRadius, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {rotateSpeed:newPreset.rotateSpeed, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {smallestDotRadius:newPreset.smallestDotRadius, time:_animDuration, onUpdate:update});
+			Tweener.addTween(sketchParams, {spaceBetweenCircles:newPreset.spaceBetweenCircles, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
+			Tweener.addTween(sketchParams, {middleGlowAlpha:newPreset.middleGlowAlpha, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
+			Tweener.addTween(sketchParams, {middleGlowScale:newPreset.middleGlowScale, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
 		}
 
 		private function update() : void {
@@ -266,7 +278,7 @@ package alwaysAnimationTool.view {
 		}
 
 		private function createAnimOrder() : void {
-			_animOrder = TextFieldUtils.createTextField(true, false,300);
+			_animOrder = TextFieldUtils.createTextField(true, false, 300);
 			_animOrder.x = 700;
 			_animOrder.y = 200;
 			_textFormat = TextFieldUtils.createTextFormat("PF Ronda Seven", 0x0, 12);
@@ -279,8 +291,6 @@ package alwaysAnimationTool.view {
 			presets = [];
 			updateAnimList(presets);
 		}
-
-	
 
 		// load all presets from the text file
 		// to save a preset- append it to the text file, then re-load the text file and update the preset list
@@ -342,12 +352,12 @@ package alwaysAnimationTool.view {
 		}
 
 		private function updateAnimList(ar : Array) : void {
-			 _animOrder.text = "PRESET ANIMATION ORDER\n";
+			_animOrder.text = "PRESET ANIMATION ORDER\n";
 			// remove existing labels;
 			for (var i : int = 0; i < ar.length; i++) {
 				registerClassAlias("alwaysAnimationTool.view", SketchParams);
 				var sketch : SketchParams = ar[i] as SketchParams;
-				_animOrder.text += (i+1).toString()+": "+sketch.name + "\n";
+				_animOrder.text += (i + 1).toString() + ": " + sketch.name + "\n";
 			}
 		}
 
@@ -365,10 +375,10 @@ package alwaysAnimationTool.view {
 			// set a file extension - could be what ever you want it to be
 			var extension : String = ".preset";
 
-			var fileRef:FileReference=new FileReference();
-			fileRef.save(ba, "preset "+s+extension);
+			var fileRef : FileReference = new FileReference();
+			fileRef.save(ba, "preset " + s + extension);
 
-/*
+			/*
 			// create the file on the desktop
 			var myFile : File = File.desktopDirectory.resolvePath("preset" + s + extension);
 
@@ -406,7 +416,7 @@ package alwaysAnimationTool.view {
 		}
 
 		public function makeExplosion() : void {
-			//trace("ControlUI.makeExplosion()  ");
+			// trace("ControlUI.makeExplosion()  ");
 
 			var e : CustomEvent = new CustomEvent("explode");
 			dispatchEvent(e);
@@ -418,14 +428,14 @@ package alwaysAnimationTool.view {
 		}
 
 		public function startSimulation() : void {
-	//		trace("ControlUI.startSimulation()  ");
+			// trace("ControlUI.startSimulation()  ");
 			var e : CustomEvent = new CustomEvent("removeParticles");
 			dispatchEvent(e);
 			valueUpdated();
 		}
 
 		public function reset() : void {
-		//	trace("ControlUI.reset()  ");
+			// trace("ControlUI.reset()  ");
 		}
 
 		public function get presetIndex() : int {
@@ -454,7 +464,9 @@ package alwaysAnimationTool.view {
 			clone.depth = source.depth;
 			clone.epsilon = source.epsilon;
 			clone.middleGlowAlpha = source.middleGlowAlpha;
-			clone.middleGlowScale= source.middleGlowScale;
+			clone.middleGlowScale = source.middleGlowScale;
+			clone.numberOfShakes = source.numberOfShakes;
+			clone.shakeAmount = source.shakeAmount;
 
 			return clone
 		}

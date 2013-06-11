@@ -1,4 +1,6 @@
 ﻿package alwaysAnimationTool {
+	import com.greensock.plugins.TweenPlugin;
+	import plugins.ShakeEffect;
 	
 	
 	import alwaysAnimationTool.view.ControlUI;
@@ -27,6 +29,11 @@
 		}
 
 		private function initApp(e:Event = null) : void {
+			
+
+			TweenPlugin.activate([ShakeEffect]);
+			
+			
 			if (e) removeEventListener(Event.ADDED_TO_STAGE, initApp);
 			stage.scaleMode = StageScaleMode.NO_SCALE;			
 			_holder = new Sprite();
@@ -35,7 +42,7 @@
 			_display.y = 50;// 400-(.5*_bannerHeight);
 			
 			
-			_controls = new ControlUI();
+			_controls = new ControlUI(_display);
 			_controls.x = -230;
 			_controls.y = -170;
 			var stats:Stats = new Stats();
