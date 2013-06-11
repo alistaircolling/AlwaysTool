@@ -8,7 +8,7 @@ package alwaysAnimationTool.view {
 		public var initialCircleRadius : int;
 		public var spaceBetweenCircles : int;
 		public var smallestDotRadius : int;
-		public var dotRadiusIncrement : int;
+		public var dotRadiusIncrement : Number;
 		public var rotateSpeed : Number;
 		public var dotColor : int;
 		public var showCircles : Boolean;
@@ -24,7 +24,9 @@ package alwaysAnimationTool.view {
 		public var epsilon : Number;
 		public var presetIndex : uint;
 		public var friction : Number;
-		public var name:String;
+		public var name : String;
+		public var middleGlowAlpha : Number;
+		public var middleGlowScale:Number;
 
 		public function savePreset() : String {
 			var preset : String = "totalCirles," + totalCirles + ",dotsPerCircle," + dotsPerCircle + ",initialCircleRadius," + initialCircleRadius + ",spaceBetweenCircles," + spaceBetweenCircles + ",smallestDotRadius," + smallestDotRadius + ",dotRadiusIncrement," + dotRadiusIncrement + ",rotateSpeed," + rotateSpeed + ",dotColor," + dotColor + ",showCircles," + showCircles + ",dotAlpha," + dotAlpha + ",filterType," + filterType + ",filterSize," + filterSize + ",filterColor," + filterColor + ",filterStrength," + filterStrength + ",filterAlpha," + filterAlpha + ",explosionPower," + explosionPower + ",expansionRate," + expansionRate + ",depth," + depth + ",epsilon," + epsilon+"-";

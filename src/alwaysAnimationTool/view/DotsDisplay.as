@@ -1,35 +1,37 @@
 package alwaysAnimationTool.view {
-	import flash.events.TimerEvent;
-	import flash.utils.Timer;
-
-	import org.flintparticles.twoD.actions.RandomDrift;
-	import org.flintparticles.twoD.actions.Friction;
-
-	import flash.geom.Point;
-	import flash.display.DisplayObject;
-
-	import org.flintparticles.twoD.actions.Explosion;
-
 	import graphics.Drawing;
 
 	import org.flintparticles.common.particles.Particle;
+	import org.flintparticles.twoD.actions.Explosion;
+	import org.flintparticles.twoD.actions.Friction;
 	import org.flintparticles.twoD.actions.Move;
+	import org.flintparticles.twoD.actions.RandomDrift;
 	import org.flintparticles.twoD.emitters.Emitter2D;
 	import org.flintparticles.twoD.particles.Particle2DUtils;
 	import org.flintparticles.twoD.renderers.DisplayObjectRenderer;
 
+	import flash.display.Bitmap;
+	import flash.display.DisplayObject;
 	import flash.display.Shape;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.TimerEvent;
 	import flash.filters.BitmapFilter;
 	import flash.filters.BitmapFilterQuality;
 	import flash.filters.BlurFilter;
 	import flash.filters.GlowFilter;
+	import flash.geom.Point;
+	import flash.utils.Timer;
 
 	/**
 	 * @author acolling
 	 */
+	
 	public class DotsDisplay extends Sprite {
+		
+		[Embed(source="centre_blur.png")] 
+		private var _Glow : Class;
+		
 		private var _bg : Shape;
 		private var _sketchParams : SketchParams;
 		private var _circles : Array;
@@ -40,6 +42,8 @@ package alwaysAnimationTool.view {
 		private var _renderer : DisplayObjectRenderer;
 		private var _explosion : Explosion;
 		private var _timer : Timer;
+		private var _centerGlowHolder : Sprite;
+		private var _centerGlowHolderHolder : Sprite;
 
 		public function DotsDisplay() {
 			init();
@@ -55,6 +59,21 @@ package alwaysAnimationTool.view {
 			_holder.x = -150;
 			_holder.y = -125;
 			_bigHolder.addChild(_holder);
+			_centerGlowHolderHolder = new Sprite();
+			addChild(_centerGlowHolderHolder);
+			_centerGlowHolder = new Sprite();
+			_centerGlowHolder.x = -150;
+			_centerGlowHolder.y = -125;
+			//_centerGlowHolder.addChild(Drawing.drawBox(300, 250, 0xff0000,1, 5, 0x0,1));
+			
+			var _glow : Bitmap = new _Glow();
+			
+			_centerGlowHolder.addChild(_glow);
+			_centerGlowHolderHolder.addChild(_centerGlowHolder);
+			_centerGlowHolderHolder.x = 150;
+			_centerGlowHolderHolder.y = 125;
+			
+			
 			createParticlesRenderer();
 			addEventListener(Event.ENTER_FRAME, oef);
 		}
@@ -137,7 +156,16 @@ package alwaysAnimationTool.view {
 			
 			setFilter();
 			generateCircles();
+			setCenterGlow();
+			
 			_bigHolder.visible = true;
+		}
+
+		private function setCenterGlow() : void {
+			
+			_centerGlowHolder.alpha = _sketchParams.middleGlowAlpha;
+			_centerGlowHolderHolder.scaleX = _centerGlowHolderHolder.scaleY = _sketchParams.middleGlowScale;
+			
 		}
 
 		private function setFilter() : void {

@@ -112,8 +112,8 @@ package alwaysAnimationTool.view {
 			_gui.addSlider("sketchParams.spaceBetweenCircles", 1, 150, {label:"Space Between Circles", width:370, tick:1, callback:valueUpdated});
 
 			_gui.addGroup("DOT PARAMETERS");
-			_gui.addSlider("sketchParams.smallestDotRadius", .5, 200, {label:"Smallest Dot Size", width:370, tick:.5, callback:valueUpdated});
-			_gui.addSlider("sketchParams.dotRadiusIncrement", .5, 100, {label:"Dot Size Increment", width:370, tick:.5, callback:valueUpdated});
+			_gui.addSlider("sketchParams.smallestDotRadius", .5, 50, {label:"Smallest Dot Size", width:370, tick:.1, callback:valueUpdated});
+			_gui.addSlider("sketchParams.dotRadiusIncrement", 0, 40, {label:"Dot Size Increment", width:370, tick:.1, callback:valueUpdated});
 			_gui.addSlider("sketchParams.dotAlpha", 0, 1, {label:"Dot Alpha", width:370, tick:.1, callback:valueUpdated, value:1});
 			_gui.addColour("sketchParams.dotColor", {label:"Dot Color", callback:valueUpdated});
 			_gui.addToggle("sketchParams.showCircles", {label:"Show Circles", callback:valueUpdated});
@@ -131,10 +131,12 @@ package alwaysAnimationTool.view {
 	
 	
 			], {label:"Filter Type", callback:valueUpdated});*/
-			_gui.addSlider("sketchParams.filterSize", 0, 20, {label:"Filter Size", width:370, tick:.5, callback:valueUpdated});
-			_gui.addSlider("sketchParams.filterStrength", 0, 255, {label:"Filter Strength", width:370, tick:1, callback:valueUpdated});
+			_gui.addSlider("sketchParams.filterSize", 0, 20, {label:"Filter Size", width:370, tick:.1, callback:valueUpdated});
+			_gui.addSlider("sketchParams.filterStrength", 0, 255, {label:"Filter Strength", width:370, tick:.1, callback:valueUpdated});
 			_gui.addSlider("sketchParams.filterAlpha", 0, 1, {label:"Filter Alpha", width:370, tick:.05, callback:valueUpdated});
 			_gui.addColour("sketchParams.filterColor", {label:"Filter Color", callback:valueUpdated});
+			_gui.addSlider("sketchParams.middleGlowAlpha", 0, 1, {label:"Center Blur Alpha", width:370, tick:.05, callback:valueUpdated});
+			_gui.addSlider("sketchParams.middleGlowScale", 0, 3, {label:"Center Blur Scale", width:370, tick:.05, callback:valueUpdated});
 
 			_gui.addColumn("EXPLOSION");
 			_gui.addSlider("sketchParams.explosionPower", 0, 200, {label:"Explosion Power", width:370, tick:.5, callback:valueUpdated});
@@ -179,6 +181,8 @@ package alwaysAnimationTool.view {
 			sketchParams.epsilon = 20;
 			sketchParams.depth = 10;
 			sketchParams.friction = 500;
+			sketchParams.middleGlowAlpha = 0;
+			sketchParams.middleGlowScale = 1;
 
 			// _total = TextFieldUtils.createTextField();
 			// _total.x = 750;
@@ -252,6 +256,8 @@ package alwaysAnimationTool.view {
 			Tweener.addTween(sketchParams, {  rotateSpeed:newPreset.rotateSpeed, time:_animDuration,  onUpdate:update});
 			Tweener.addTween(sketchParams, {  smallestDotRadius:newPreset.smallestDotRadius, time:_animDuration,  onUpdate:update});
 			Tweener.addTween(sketchParams, {  spaceBetweenCircles:newPreset.spaceBetweenCircles, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
+			Tweener.addTween(sketchParams, {  middleGlowAlpha:newPreset.middleGlowAlpha, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
+			Tweener.addTween(sketchParams, {  middleGlowScale:newPreset.middleGlowScale, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
 			
 		}
 
@@ -447,6 +453,8 @@ package alwaysAnimationTool.view {
 			clone.expansionRate = source.expansionRate;
 			clone.depth = source.depth;
 			clone.epsilon = source.epsilon;
+			clone.middleGlowAlpha = source.middleGlowAlpha;
+			clone.middleGlowScale= source.middleGlowScale;
 
 			return clone
 		}

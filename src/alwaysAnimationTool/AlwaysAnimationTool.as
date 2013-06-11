@@ -32,7 +32,7 @@
 			_holder = new Sprite();
 			_display = new DotsDisplay();	
 			_display.x = 140;//500-(.5*_bannerWidth);
-			_display.y =50;// 400-(.5*_bannerHeight);
+			_display.y = 50;// 400-(.5*_bannerHeight);
 			
 			
 			_controls = new ControlUI();
