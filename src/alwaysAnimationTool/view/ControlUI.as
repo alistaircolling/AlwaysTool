@@ -1,4 +1,5 @@
 package alwaysAnimationTool.view {
+	import alwaysAnimationTool.AlwaysAnimationTool;
 	import caurina.transitions.Tweener;
 
 	import hires.debug.Stats;
@@ -68,6 +69,8 @@ package alwaysAnimationTool.view {
 		private var _animStartTimer : Timer;
 		public var explodeAtEnd : Boolean;
 		private var _display : Sprite;
+		
+		
 
 		public function ControlUI(display : Sprite) {
 			_display = display;
@@ -82,11 +85,12 @@ package alwaysAnimationTool.view {
 			createControls();
 			addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
 			addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			
 
 			// createList();
 		}
 
-		// // /////////////////////////////
+		// // // ///////////////////////////
 		private function mouseDownHandler(event : MouseEvent) : void {
 			var sprite : Sprite = Sprite(event.target);
 			sprite.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
@@ -163,6 +167,7 @@ package alwaysAnimationTool.view {
 
 			_gui.addButton("Save Preset", {callback:savePreset});
 			_gui.addButton("Load Preset", {callback:loadPreset});
+			_gui.addButton("Print String", {callback:printString});
 			_gui.addButton("Clear List", {callback:clearList});
 			_gui.addButton("Animate", {callback:animate});
 			_gui.addToggle("explodeAtEnd");
@@ -180,7 +185,7 @@ package alwaysAnimationTool.view {
 			sketchParams.rotateSpeed = 0.6;
 			sketchParams.filterType = {label:"glow", data:"glow"};
 			sketchParams.filterSize = 3;
-			sketchParams.filterColor = 0xffffff;
+			sketchParams.filterColor = AlwaysAnimationTool.FONT_NAVY;
 			sketchParams.filterStrength = 100;
 			sketchParams.filterAlpha = .2;
 			sketchParams.explosionPower = .5;
@@ -209,12 +214,23 @@ package alwaysAnimationTool.view {
 			createAnimOrder();
 		}
 
-		private function startShake() : void {
-			TweenPlugin.activate([ShakeEffect]);
-		
+		private function printString() : void {
+			registerClassAlias("alwaysAnimationTool.view", SketchParams);
+			var ba : ByteArray = new ByteArray();
+			ba.writeObject(sketchParams);
+			ba.position = 0;
+			trace("=========   PRINTING BYTE ARRAY STRING  =========");
+			
+			
+			trace("=========  END =========");
+		}
 
-//CustomEase.create("myCustomEase", [{s:0,cp:0.156,e:0.03},{s:0.03,cp:-0.096,e:0.068},{s:0.068,cp:0.232,e:0.032},{s:0.032,cp:-0.168,e:0.14599},{s:0.14599,cp:0.46,e:0.32},{s:0.32,cp:0.18,e:-0.11},{s:-0.11,cp:-0.4,e:1}]);
-			TweenMax.to(_display, 1, {shake:{x:sketchParams.shakeAmount, y: sketchParams.shakeAmount, numShakes:sketchParams.numberOfShakes, reversed:true} });
+		public function startShake() : void {
+			TweenPlugin.activate([ShakeEffect]);
+			sketchParams.shakeAmount = 3;
+			sketchParams.numberOfShakes = 30;
+			// CustomEase.create("myCustomEase", [{s:0,cp:0.156,e:0.03},{s:0.03,cp:-0.096,e:0.068},{s:0.068,cp:0.232,e:0.032},{s:0.032,cp:-0.168,e:0.14599},{s:0.14599,cp:0.46,e:0.32},{s:0.32,cp:0.18,e:-0.11},{s:-0.11,cp:-0.4,e:1}]);
+			TweenMax.to(_display, 3, {shake:{x:sketchParams.shakeAmount, y:sketchParams.shakeAmount, numShakes:sketchParams.numberOfShakes}, onComplete:makeExplosion});
 		}
 
 		public function animate() : void {
@@ -247,30 +263,32 @@ package alwaysAnimationTool.view {
 				}
 			}
 		}
+		
+		//nothing is called once the tweens are completed
 
-		private function tweenToValues(newPreset : SketchParams) : void {
+		public function tweenToValues(newPreset : SketchParams) : void {
 			sketchParams.filterType = newPreset.filterType;
 			sketchParams.showCircles = newPreset.showCircles;
-			Tweener.addTween(sketchParams, {totalCirles:newPreset.totalCirles, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {depth:newPreset.depth, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {dotAlpha:newPreset.dotAlpha, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {dotColor:newPreset.dotColor, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {dotRadiusIncrement:newPreset.dotRadiusIncrement, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {dotsPerCircle:newPreset.dotsPerCircle, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {epsilon:newPreset.epsilon, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {expansionRate:newPreset.expansionRate, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {explosionPower:newPreset.explosionPower, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {filterAlpha:newPreset.filterAlpha, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {filterColor:newPreset.filterColor, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {filterSize:newPreset.filterSize, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {filterStrength:newPreset.filterStrength, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {friction:newPreset.friction, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {initialCircleRadius:newPreset.initialCircleRadius, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {rotateSpeed:newPreset.rotateSpeed, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {smallestDotRadius:newPreset.smallestDotRadius, time:_animDuration, onUpdate:update});
-			Tweener.addTween(sketchParams, {spaceBetweenCircles:newPreset.spaceBetweenCircles, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
-			Tweener.addTween(sketchParams, {middleGlowAlpha:newPreset.middleGlowAlpha, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
-			Tweener.addTween(sketchParams, {middleGlowScale:newPreset.middleGlowScale, time:_animDuration, onUpdate:update, onComplete:tweenCompleted});
+			if (sketchParams.totalCirles != newPreset.totalCirles) Tweener.addTween(sketchParams, {totalCirles:newPreset.totalCirles, time:_animDuration, onUpdate:update});
+			if (sketchParams.depth != newPreset.depth) Tweener.addTween(sketchParams, {depth:newPreset.depth, time:_animDuration, onUpdate:update});
+			if (sketchParams.dotAlpha != newPreset.dotAlpha) Tweener.addTween(sketchParams, {dotAlpha:newPreset.dotAlpha, time:_animDuration, onUpdate:update});
+			if (sketchParams.dotColor != newPreset.dotColor) Tweener.addTween(sketchParams, {dotColor:newPreset.dotColor, time:_animDuration, onUpdate:update});
+			if (sketchParams.dotRadiusIncrement != newPreset.dotRadiusIncrement) Tweener.addTween(sketchParams, {dotRadiusIncrement:newPreset.dotRadiusIncrement, time:_animDuration, onUpdate:update});
+			if (sketchParams.dotsPerCircle != newPreset.dotsPerCircle) Tweener.addTween(sketchParams, {dotsPerCircle:newPreset.dotsPerCircle, time:_animDuration, onUpdate:update});
+			if (sketchParams.epsilon != newPreset.epsilon) Tweener.addTween(sketchParams, {epsilon:newPreset.epsilon, time:_animDuration, onUpdate:update});
+			if (sketchParams.expansionRate != newPreset.expansionRate) Tweener.addTween(sketchParams, {expansionRate:newPreset.expansionRate, time:_animDuration, onUpdate:update});
+			if (sketchParams.explosionPower != newPreset.explosionPower) Tweener.addTween(sketchParams, {explosionPower:newPreset.explosionPower, time:_animDuration, onUpdate:update});
+			if (sketchParams.filterAlpha != newPreset.filterAlpha) Tweener.addTween(sketchParams, {filterAlpha:newPreset.filterAlpha, time:_animDuration, onUpdate:update});
+			if (sketchParams.filterColor != newPreset.filterColor) Tweener.addTween(sketchParams, {filterColor:newPreset.filterColor, time:_animDuration, onUpdate:update});
+			if (sketchParams.filterSize != newPreset.filterSize) Tweener.addTween(sketchParams, {filterSize:newPreset.filterSize, time:_animDuration, onUpdate:update});
+			if (sketchParams.filterStrength != newPreset.filterStrength) Tweener.addTween(sketchParams, {filterStrength:newPreset.filterStrength, time:_animDuration, onUpdate:update});
+			if (sketchParams.friction != newPreset.friction) Tweener.addTween(sketchParams, {friction:newPreset.friction, time:_animDuration, onUpdate:update});
+			if (sketchParams.initialCircleRadius != newPreset.initialCircleRadius) Tweener.addTween(sketchParams, {initialCircleRadius:newPreset.initialCircleRadius, time:_animDuration, onUpdate:update});
+			if (sketchParams.rotateSpeed != newPreset.rotateSpeed) Tweener.addTween(sketchParams, {rotateSpeed:newPreset.rotateSpeed, time:_animDuration, onUpdate:update});
+			if (sketchParams.smallestDotRadius != newPreset.smallestDotRadius) Tweener.addTween(sketchParams, {smallestDotRadius:newPreset.smallestDotRadius, time:_animDuration, onUpdate:update});
+			if (sketchParams.spaceBetweenCircles != newPreset.spaceBetweenCircles) Tweener.addTween(sketchParams, {spaceBetweenCircles:newPreset.spaceBetweenCircles, time:_animDuration, onUpdate:update});
+			if (sketchParams.middleGlowAlpha != newPreset.middleGlowAlpha) Tweener.addTween(sketchParams, {middleGlowAlpha:newPreset.middleGlowAlpha, time:_animDuration, onUpdate:update});
+			if (sketchParams.middleGlowScale != newPreset.middleGlowScale) Tweener.addTween(sketchParams, {middleGlowScale:newPreset.middleGlowScale, time:_animDuration, onUpdate:update});
 		}
 
 		private function update() : void {
@@ -351,7 +369,7 @@ package alwaysAnimationTool.view {
 			valueUpdated();
 		}
 
-		private function updateAnimList(ar : Array) : void {
+		public function updateAnimList(ar : Array) : void {
 			_animOrder.text = "PRESET ANIMATION ORDER\n";
 			// remove existing labels;
 			for (var i : int = 0; i < ar.length; i++) {
@@ -420,6 +438,7 @@ package alwaysAnimationTool.view {
 
 			var e : CustomEvent = new CustomEvent("explode");
 			dispatchEvent(e);
+			
 		}
 
 		public function valueUpdated() : void {

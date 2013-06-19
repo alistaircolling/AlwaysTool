@@ -1,4 +1,6 @@
 package alwaysAnimationTool.view {
+	import com.greensock.TweenMax;
+
 	import graphics.Drawing;
 
 	import org.flintparticles.common.particles.Particle;
@@ -26,12 +28,9 @@ package alwaysAnimationTool.view {
 	/**
 	 * @author acolling
 	 */
-	
 	public class DotsDisplay extends Sprite {
-		
-		[Embed(source="centre_blur.png")] 
+		[Embed(source="centre_blur.png")]
 		private var _Glow : Class;
-		
 		private var _bg : Shape;
 		private var _sketchParams : SketchParams;
 		private var _circles : Array;
@@ -50,7 +49,7 @@ package alwaysAnimationTool.view {
 		}
 
 		private function init() : void {
-			drawBG();
+		//	drawBG();
 			_bigHolder = new Sprite();
 			_bigHolder.x = 150;
 			_bigHolder.y = 125;
@@ -63,18 +62,18 @@ package alwaysAnimationTool.view {
 			addChild(_centerGlowHolderHolder);
 			_centerGlowHolder = new Sprite();
 			_centerGlowHolder.x = -150;
-			_centerGlowHolder.y = -125;
-			//_centerGlowHolder.addChild(Drawing.drawBox(300, 250, 0xff0000,1, 5, 0x0,1));
-			
+			_centerGlowHolder.y = -115;
+
 			var _glow : Bitmap = new _Glow();
-			
+
 			_centerGlowHolder.addChild(_glow);
 			_centerGlowHolderHolder.addChild(_centerGlowHolder);
 			_centerGlowHolderHolder.x = 150;
 			_centerGlowHolderHolder.y = 125;
-			
-			
+
 			createParticlesRenderer();
+			_holder.addChild(Drawing.drawBox(1000, 1000, 0xff0000));
+			// ,1, 5, 0x0,1));
 			addEventListener(Event.ENTER_FRAME, oef);
 		}
 
@@ -89,26 +88,45 @@ package alwaysAnimationTool.view {
 			_renderer.y = 350;
 			_renderer.addEmitter(_emitter);
 			// _renderer.filters = [getBlurFilter()];// getBitmapFilter()];
-			addChild(_renderer);
+			addChildAt(_renderer, numChildren-1);
 			_emitter.start();
 		}
 
 		public function explode() : void {
-			//trace("DotsDisplay.explode()  ");
+			//add glow to the emitter
+			_sketchParams.dotAlpha = .6;
+			valuesSet(_sketchParams);
+			_renderer.filters [getFinalGlowFilter() ];
+			
+			// trace("DotsDisplay.explode()  ");
 			var arr : Array = getDots();
 			arr = setPositionGlobalToLocal(arr);
 			var particles : Vector.<Particle> = Particle2DUtils.createParticles2DFromDisplayObjects(arr);
 			_emitter.addParticles(particles, false);
 			_bigHolder.visible = false;
 			_explosion = new Explosion(_sketchParams.explosionPower, -210, -225, _sketchParams.expansionRate, _sketchParams.depth, _sketchParams.epsilon);
-			
+
 			// _renderer.filters = [getBlurFilter()];// getBitmapFilter()];
 			_renderer.alpha = _sketchParams.dotAlpha;
 			_timer = new Timer(5);
 			_timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTComplete);
-			 _timer.start();
+			_timer.start();
 			_emitter.addAction(new RandomDrift(30, 30));
 			_emitter.addAction(_explosion);
+		}
+
+		private function getFinalGlowFilter() : BitmapFilter {
+			
+			var color : Number = 0xffffff;
+			var alpha : Number = .7
+			var blurX : Number = 6;
+			var blurY : Number = 6;
+			var strength : Number = 20;
+			var inner : Boolean = false;
+			var knockout : Boolean = false;
+			var quality : Number = BitmapFilterQuality.HIGH;
+
+			return new GlowFilter(color, alpha, blurX, blurY, strength, quality, inner, knockout);
 		}
 
 		private function onTComplete(event : TimerEvent) : void {
@@ -153,19 +171,22 @@ package alwaysAnimationTool.view {
 
 		public function valuesSet(sketchParams : SketchParams) : void {
 			_sketchParams = sketchParams;
-			
+
 			setFilter();
 			generateCircles();
 			setCenterGlow();
-			
+
 			_bigHolder.visible = true;
 		}
 
 		private function setCenterGlow() : void {
-			
 			_centerGlowHolder.alpha = _sketchParams.middleGlowAlpha;
 			_centerGlowHolderHolder.scaleX = _centerGlowHolderHolder.scaleY = _sketchParams.middleGlowScale;
-			
+		}
+
+		public function removeAllFilters() : void {
+			_holder.filters = [];
+			_centerGlowHolder.filters = [];
 		}
 
 		private function setFilter() : void {
@@ -174,21 +195,22 @@ package alwaysAnimationTool.view {
 			}
 			switch(_sketchParams.filterType.label) {
 				case "blur":
-				//	//trace("adding blur filter");
+					//	// trace("adding blur filter");
 					var bitmapFilter : BlurFilter = new BlurFilter(_sketchParams.filterSize, _sketchParams.filterSize, 2);
 					filters.push(bitmapFilter);
 					break;
 				case "glow":
-				//	//trace("adding glow filter");
+					//	// trace("adding glow filter");
 					var glowFilter : GlowFilter = getBitmapFilter();
 					_holder.filters = [glowFilter];
+					_centerGlowHolder.filters = [glowFilter];
 					break;
 				default:
 			}
 		}
 
 		public function getBitmapFilter() : GlowFilter {
-			var color : Number = _sketchParams.filterColor
+			var color : Number = _sketchParams.filterColor;
 			var alpha : Number = _sketchParams.filterAlpha;
 			var blurX : Number = _sketchParams.filterSize;
 			var blurY : Number = _sketchParams.filterSize;
@@ -229,7 +251,11 @@ package alwaysAnimationTool.view {
 		}
 
 		public function removeParticles() : void {
-		
+		}
+
+		public function fadeOutCenterGlow() : void {
+			TweenMax.to(_centerGlowHolder, 10, {alpha:0});
+			
 		}
 	}
 }
